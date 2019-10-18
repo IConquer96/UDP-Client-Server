@@ -67,7 +67,7 @@ int main()
 
 	int iReceiveFrom;
 	char BufferReceive[800]; //wiadomosc doebrana 
-	int iBuffferReceiveLength = strlen(BufferReceive) + 1;
+	int iBufferReceiveLength = strlen(BufferReceive) + 1;
 
 
 	//
@@ -112,56 +112,56 @@ int main()
 	//
 	//
 	//
+	while (true) {
+		//-- test dla jednej operacji -- 
+		cout << "Jaka operacja " << endl;
+		cout << "-----------------" << endl;
+		cout << "1. Dodawanie " << endl;
+		cout << "2. Odejmowanie " << endl;
+		cout << "3. Mnozenie " << endl;
+		cout << "4. Dzielenie " << endl;
 
-	//-- test dla jednej operacji -- 
-	cout << "Jaka operacja " << endl;
-	cout << "-----------------"<<endl;
-	cout << "1. Dodawanie " << endl;
-	cout << "2. Odejmowanie " << endl;
-	cout << "3. Mnozenie " << endl;
-	cout << "4. Dzielenie " << endl;
-	
 
-	cin >> wybor;
-	cout << " Wpisz 3 liczby do operacji " << endl;
+		cin >> wybor;
+		cout << " Wpisz 3 liczby do operacji " << endl;
 
-	switch(wybor) {
-	case '1':
-		operacja += "dodawanie@";
-		break;
-	case '2':
-		operacja += "odejmowanie@";
+		switch (wybor) {
+		case '1':
+			operacja += "dodawanie@";
 			break;
-	case '3':
-		operacja += "mnozenie@";
-		break;
-	case '4':
-		operacja += "dzielenie@";
-		dzielenie = true;
-		//--sprawdzenie warunku potem - string iden
-		break;
-	
-		
-	}
-	//1. ---- doklejenie numeru sesji klienta do stringa operacja, wstawic tam gdzie inicjalizacja gniazda, poniewaz klient TYLKO RAZ otrzymuje nr sesji
+		case '2':
+			operacja += "odejmowanie@";
+			break;
+		case '3':
+			operacja += "mnozenie@";
+			break;
+		case '4':
+			operacja += "dzielenie@";
+			dzielenie = true;
+			//--sprawdzenie warunku potem - string iden
+			break;
 
-	
-//
+
+		}
+		//1. ---- doklejenie numeru sesji klienta do stringa operacja, wstawic tam gdzie inicjalizacja gniazda, poniewaz klient TYLKO RAZ otrzymuje nr sesji
+
+
 	//
-	//
-	//
+		//
+		//
+		//
 
-	//2. ---- doklejenie godziny do stringa operacja----
-	iden += get_godzina()+"##";
-	//USUNAC JEDNEGO HASZA!!!!! KIEDY DODAMY SESJE
+		//2. ---- doklejenie godziny do stringa operacja----
+		iden += get_godzina() + "##";
+		//USUNAC JEDNEGO HASZA!!!!! KIEDY DODAMY SESJE
 
 
-	//3. ---- doklejenie liczb do stringa operacja-----
+		//3. ---- doklejenie liczb do stringa operacja-----
 
-	//dodawanie liczb do iden (moze byc poza switch, jedynie co trzeba dodac to sprawdzenie 0 gdy operacja jest dzielenie)
-	//---- w dzieleniu tylko PIERWSZA liczba moze byc 0, reszta musi byc rozna od 0----
-	//wpisanie 3 liczb do dzialania
-	int liczba;
+		//dodawanie liczb do iden (moze byc poza switch, jedynie co trzeba dodac to sprawdzenie 0 gdy operacja jest dzielenie)
+		//---- w dzieleniu tylko PIERWSZA liczba moze byc 0, reszta musi byc rozna od 0----
+		//wpisanie 3 liczb do dzialania
+		int liczba;
 		for (int i = 0; i < 3;) {
 			//wprowadzanie liczby do zmiennej tymczasowej
 			cin >> liczba;
@@ -189,53 +189,59 @@ int main()
 		}
 
 
-	//----wyslanie pe³nego komunikatu
-	komunikat_koncowy = operacja + status + iden;
-	//--zamiana string na char array : Buffer 
-	
-	strcpy(Buffer, komunikat_koncowy.c_str());
+		//----wyslanie pe³nego komunikatu
+		komunikat_koncowy = operacja + status + iden;
+		//--zamiana string na char array : Buffer 
 
-	int iBuffferLength = strlen(Buffer) + 1; //dlugosc buffera
+		strcpy(Buffer, komunikat_koncowy.c_str());
 
-	iSendTo = sendto(
-		UDPSocketClient,
-		Buffer,
-		iBuffferLength,
-		MSG_DONTROUTE,
-		(SOCKADDR*)&UDPServer,
-		sizeof(UDPServer));
-	//---------------------------
-	
+		int iBufferLength = strlen(Buffer) + 1; //dlugosc buffera
 
-	if (iSendTo == SOCKET_ERROR) {
-		cout << "Blad wysylania wiadomosci o numerze " << WSAGetLastError() << endl;
+		if (iSendTo = sendto(
+			UDPSocketClient,
+			Buffer,
+			iBufferLength,
+			MSG_DONTROUTE,
+			(SOCKADDR*)&UDPServer,
+			sizeof(UDPServer) )== SOCKET_ERROR) {
+
+			cout << "Blad wysylania wiadomosci o numerze " << WSAGetLastError() << endl;
+			exit(EXIT_FAILURE);
+		}
+		//---------------------------
+
+
+	//	if (iSendTo == SOCKET_ERROR) {
+		//	cout << "Blad wysylania wiadomosci o numerze " << WSAGetLastError() << endl;
+	//	}
+		cout << "Wiadomosc wyslana pomyslne " << endl;
+		//---------------------
+		//odebranie komunikatu od serwera
+
+
+		if (iReceiveFrom = recvfrom(
+			UDPSocketClient,
+			BufferReceive,
+			iBufferReceiveLength,
+			MSG_PEEK,
+			(SOCKADDR*)&UDPServer,
+			&iUDPServer) == SOCKET_ERROR) {
+
+			cout << "Blad odebrania wiadomosci o numerze " << WSAGetLastError() << endl;
+			exit(EXIT_FAILURE);
+		}
+
+		//if (iReceiveFrom == SOCKET_ERROR) {
+		//	cout << "Blad odebrania wiadomosci o numerze " << WSAGetLastError() << endl;
+//
+	//	}
+
+		//odebranie danych od klienta
+		cout << "Odebrano pomyslnie " << endl << endl;
+		cout << "Odebrana wiadomosc: " << BufferReceive << endl << endl;
+
+
 	}
-	cout << "Wiadomosc wyslana pomyslne " << endl;
-	//---------------------
-	//odebranie komunikatu od serwera
-
-	iReceiveFrom = recvfrom(
-		UDPSocketClient,
-		BufferReceive,
-		iBuffferReceiveLength,
-		MSG_PEEK,
-		(SOCKADDR*)&UDPServer,
-		&iUDPServer);
-
-	if (iReceiveFrom == SOCKET_ERROR) {
-		cout << "Blad odebrania wiadomosci o numerze " << WSAGetLastError() << endl;
-
-	}
-
-	//odebranie danych od klienta
-	cout << "Odebrano pomyslnie " << endl << endl;
-	cout << "Odebrana wiadomosc: " << BufferReceive << endl << endl;
-
-
-
-
-
-
 	//::_________________________________________________________________________________::
 	//zamkniecie gniazda
 	iCloseSocket = closesocket(UDPSocketClient);
