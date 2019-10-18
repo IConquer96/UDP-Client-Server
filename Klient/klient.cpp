@@ -6,7 +6,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define WIN32_LEAN_AND_MEAN
 
-constexpr auto PORT = 8000
+#define PORT 8000
 
 #include <iostream>
 #include <stdio.h>
@@ -122,7 +122,9 @@ int main()
 	cout << "4. Dzielenie " << endl;
 	
 
-	wybor = _getch();
+	cin >> wybor;
+	cout << " Wpisz 3 liczby do operacji " << endl;
+
 	switch(wybor) {
 	case '1':
 		operacja += "dodawanie@";
@@ -149,9 +151,10 @@ int main()
 	//
 	//
 
-	cout << get_godzina();
 	//2. ---- doklejenie godziny do stringa operacja----
-	iden += get_godzina()+"#";
+	iden += get_godzina()+"##";
+	//USUNAC JEDNEGO HASZA!!!!! KIEDY DODAMY SESJE
+
 
 	//3. ---- doklejenie liczb do stringa operacja-----
 
@@ -177,6 +180,9 @@ int main()
 						iden += to_string(liczba);
 						iden += (i != 2) ? "#" : "@";
 						i++;
+					}
+					else {
+						cout << "To nie moze byc zero! Wpisz ponownie" << endl;
 					}
 				}
 			}

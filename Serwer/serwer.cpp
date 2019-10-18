@@ -15,19 +15,11 @@ constexpr auto PORT = 8000;
 #include <winsock2.h>
 #include <ctime>
 #include <string>
+#include <vector>
 
 #pragma comment (lib, "Ws2_32.lib")
 
 using namespace std;
-
-int getId(bool id[]) {
-	for(int i=0; i<8; i++) {
-		if(id[i]) {
-			return i;
-		}
-	}
-	return -1;
-}
 
 string get_godzina() {
 
@@ -46,6 +38,44 @@ string get_godzina() {
 	return godzina;
 }
 
+vector<string> getContainer(char napis[]) {
+	string temp = "";
+	vector<string> tempVector;
+
+	for (int i = 0; i < strlen(napis); i++) {
+		if (napis[i] != '@') {
+			temp += napis[i];
+		}
+		else {
+			tempVector.push_back(temp);
+			temp = "";
+		}
+	}
+	return tempVector;
+}
+
+vector<int> getInts(string& iden) {
+	int hashCounter = 0;
+	vector<int> ints;
+	iden += "@";
+	int temp = 0;
+	for (int i = 0; i <= iden.length(); i++) {
+		if (hashCounter >= 3) {
+			if (iden[i] != '#' && iden[i] != '@') {
+				temp *= 10;
+				temp += iden[i] - 48;
+			}
+			else {
+				ints.push_back(temp);
+				temp = 0;
+			}
+		}
+		if (iden[i] == '#') {
+			hashCounter++;
+		}
+	}
+	return ints;
+}
 
 int main()
 {
@@ -78,7 +108,9 @@ int main()
 	int iSendTo;
 	char BufferResponse[800]; //wiadomosc doebrana 
 	int iBuffferResponseLength; //dlugosc buffera do odebrania
-	string komunikat_zwrotny;
+	string komunikat_zwrotny = "";
+	string operacja = "";
+	int liczba1, liczba2, liczba3;
 
 	/*
 	bool id_client[8];
@@ -117,67 +149,139 @@ int main()
 		(SOCKADDR*)&UDPClient,
 		sizeof(UDPClient));
 
+
 	if (iBind == SOCKET_ERROR) {
 		cout << "Blad laczenia z serwerem o numerze " << WSAGetLastError() << endl;
 	}
 	cout << "Laczenie z serwerem pomyslne " << endl;
 	cout << "Czekam ..." << endl;
-	//--------------
-	//odebranie komunikatu o id, nastêpnie odes³anie numeru id do klienta
-	//odebranie komunikatu z proœb¹ o id
+	//::__________________________________::
+	//odebranie danych
+	while (true) {
+		strcpy(BufferReceive, komunikat_otrzymany.c_str());
+
+		iReceiveFrom = recvfrom(
+			UDPSocketServer,
+			BufferReceive,
+			iBuffferReceiveLength,
+			MSG_PEEK,
+			(SOCKADDR*)&UDPClient,
+			&iUDPClient);
+
+		if (iReceiveFrom == SOCKET_ERROR) {
+			cout << "Blad odebrania wiadomosci o numerze " << WSAGetLastError() << endl;
+
+		}
+
+		//odebranie danych od klienta
+		cout << "Odebrano pomyslnie " << endl << endl;
+		cout << "Odebrana wiadomosc: " << BufferReceive << endl << endl;
+		//-------------------------------
+		//::__________________________________::
+		//serwer odsy³a wiadomosc do klienta
+
+		//operacja - rozpoznawanie operacji dostarczonej przez komunikat klienta po dwóch pierwszych charach operacji -np dodawanie : "do"
+		operacja = "";
+		operacja.push_back(BufferReceive[5]);
+		operacja.push_back(BufferReceive[6]);
+
+		//cout << BufferReceive[5]<< " " <<  BufferReceive[6];
+		//cout << " OPERACJA: " + operacja << endl;
+
+		vector<string> komunikaty = getContainer(BufferReceive);
+		vector<int> liczby = getInts(komunikaty[2]);//tu wywala?
+
+		liczba1 = liczby.at(0);
+		liczba2 = liczby.at(1);
+		liczba3 = liczby.at(2);
+		/*for (auto a : liczby) {
+			cout << a << " ";
+		}*/
+		//oper#mnozenie@stat#NULL@iden#sesja0#12:00#3#3#3@ odebrany komunikat
+		komunikat_zwrotny += "oper#";
+
+
+		float wynik = NULL;
+
+		if (operacja == "mn") {
+			/*wynik = 1;
+			for (auto a : liczby) {
+				wynik *= a;
+			}*/
+			wynik = liczba1 * liczba2 * liczba3;
+			komunikat_zwrotny += "mnozenie@stat#OK@iden#" + get_godzina() + "#" + to_string(wynik) + "@";
+		}
+		else if (operacja == "dz") {
+			/*for (auto a : liczby) {
+				if (wynik == NULL) {
+					wynik = a;
+				}
+				else {
+					wynik *= 1.0;
+					wynik /= a;
+				}
+			}*/
+			wynik = liczba1 * 1.0 / liczba2 * 1.0 / liczba3 * 1.0;
+			komunikat_zwrotny += "dzielenie@stat#OK@iden#" + get_godzina() + "#" + to_string(wynik) + "@";
+		}
+		else if (operacja == "do") {
+			/*wynik = 0;
+			for (auto a : liczby) {
+				wynik += a;
+			}*/
+			wynik = liczba1 + liczba2 + liczba3;
+			komunikat_zwrotny += "dodawanie@stat#OK@iden#" + get_godzina() + "#" + to_string(wynik) + "@";
+		}
+		else if (operacja == "od") {
+			/*for (auto a : liczby) {
+				if (wynik == NULL) {
+					wynik = a;
+				}
+				else {
+					wynik -= a;
+				}
+			}*/
+			wynik = liczba1 - liczba2 - liczba3;
+			komunikat_zwrotny += "odejmowanie@stat#OK@iden#" + get_godzina() + "#" + to_string(wynik) + "@";
+		}
+
+		else {
+			//stat#ERROR 
+			komunikat_zwrotny = "stat#ERROR@"; //+ numer sesji
+		}
 
 
 
-	//oper#mnozenie@:stat#OKEY@iden#sesja0(numer w tablicy 0)#12:00#27@
+		//oper#mnozenie@stat#NULL@iden#sesja0#12:00#3#3#3@ odebrany komunikat
 
-	strcpy(BufferReceive, komunikat_otrzymany.c_str());
+		//oper#mnozenie@:stat#
+		//OK@iden#sesja0(numer w tablicy 0)#12:00#27@
 
-	iReceiveFrom = recvfrom(
-		UDPSocketServer,
-		BufferReceive,
-		iBuffferReceiveLength,
-		MSG_PEEK,
-		(SOCKADDR*)&UDPClient,
-		&iUDPClient);
 
-	if (iReceiveFrom == SOCKET_ERROR) {
-		cout << "Blad odebrania wiadomosci o numerze " << WSAGetLastError() << endl;
+
+
+
+		//::__________________________________::
+		//------------------------------
+		strcpy(BufferResponse, komunikat_zwrotny.c_str()); //zamiana stringa na tablicê char
+		iBuffferResponseLength = strlen(BufferResponse) + 1; //dlugosc buffera do wyslania
+		//----------------------------
+		iSendTo = sendto(
+			UDPSocketServer,
+			BufferResponse,
+			iBuffferResponseLength,
+			MSG_DONTROUTE,
+			(SOCKADDR*)&UDPClient,
+			sizeof(UDPClient));
+		//---------------------------
+
+		if (iSendTo == SOCKET_ERROR) {
+			cout << "Blad wysylania wiadomosci o numerze " << WSAGetLastError() << endl;
+		}
+		cout << "Wiadomosc wyslana pomyslne " << endl;
 
 	}
-
-	//odebranie danych od klienta
-	cout << "Odebrano pomyslnie " << endl << endl;
-	cout << "Odebrana wiadomosc: " << BufferReceive << endl << endl;
-
-
-	//serwer wysy³a wiadomosc do klienta
-	//---
-	komunikat_zwrotny = "Jestesmy zgubieni";
-	
-
-	strcpy(BufferResponse, komunikat_zwrotny.c_str());
-
-	iBuffferResponseLength = strlen(BufferResponse) + 1; //dlugosc buffera do wyslania
-
-	iSendTo = sendto(
-		UDPSocketServer,
-		BufferResponse,
-		iBuffferResponseLength,
-		MSG_DONTROUTE,
-		(SOCKADDR*)&UDPClient,
-		sizeof(UDPClient));
-	//---------------------------
-
-	if (iSendTo == SOCKET_ERROR) {
-		cout << "Blad wysylania wiadomosci o numerze " << WSAGetLastError() << endl;
-	}
-	cout << "Wiadomosc wyslana pomyslne " << endl;
-
 	//zamkniecie gniazda
-	
-	//jesli klient wysle END zamkniecie serwera 
-
-	
 		iCloseSocket = closesocket(UDPSocketServer);
 
 		if (iCloseSocket == SOCKET_ERROR) {
